@@ -71,6 +71,7 @@ export async function createAppLoadContext(
 
 [#2333](https://github.com/Shopify/hydrogen/pull/2333)
 
+
 ```diff
 // in server.ts
 

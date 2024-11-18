@@ -128,7 +128,7 @@ function loadDeferredData({context}) {
  * @param {Class<loader>>}
  */
 export const meta = ({data}) => {
-  return getSeoMeta(data.seo);
+  return getSeoMeta(data?.seo);
 };
 
 /**

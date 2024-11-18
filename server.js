@@ -1,21 +1,11 @@
 // @ts-ignore
 // Virtual entry point for the app
 import * as remixBuild from 'virtual:remix/server-build';
-import {
-  createRequestHandler,
-  getStorefrontHeaders,
-} from '@shopify/remix-oxygen';
-import {
-  cartGetIdDefault,
-  cartSetIdDefault,
-  createCartHandler,
-  createStorefrontClient,
-  storefrontRedirect,
-  createCustomerAccountClient,
-} from '@shopify/hydrogen';
-
-import {AppSession} from '~/lib/session.server';
+import { createRequestHandler } from '@shopify/remix-oxygen';
+import {AppSession} from '~/lib/session';
 import {getLocaleFromRequest} from '~/lib/utils';
+import { createAppLoadContext } from '~/lib/context';
+import { storefrontRedirect } from '@shopify/hydrogen';
 
 /**
  * Export a fetch handler in module format.
@@ -29,50 +19,11 @@ export default {
    */
   async fetch(request, env, executionContext) {
     try {
-      /**
-       * Open a cache instance in the worker and a custom session instance.
-       */
-      if (!env?.SESSION_SECRET) {
-        throw new Error('SESSION_SECRET environment variable is not set');
-      }
-
-      const waitUntil = executionContext.waitUntil.bind(executionContext);
-      const [cache, session] = await Promise.all([
-        caches.open('hydrogen'),
-        AppSession.init(request, [env.SESSION_SECRET]),
-      ]);
-
-      /**
-       * Create Hydrogen's Storefront client.
-       */
-      const {storefront} = createStorefrontClient({
-        cache,
-        waitUntil,
-        i18n: getLocaleFromRequest(request),
-        publicStorefrontToken: env.PUBLIC_STOREFRONT_API_TOKEN,
-        privateStorefrontToken: env.PRIVATE_STOREFRONT_API_TOKEN,
-        storeDomain: env.PUBLIC_STORE_DOMAIN,
-        storefrontId: env.PUBLIC_STOREFRONT_ID,
-        storefrontHeaders: getStorefrontHeaders(request),
-      });
-
-      /**
-       * Create a client for Customer Account API.
-       */
-      const customerAccount = createCustomerAccountClient({
-        waitUntil,
+      const appLoadContext = await createAppLoadContext(
         request,
-        session,
-        customerAccountId: env.PUBLIC_CUSTOMER_ACCOUNT_API_CLIENT_ID,
-        shopId: env.SHOP_ID,
-      });
-
-      const cart = createCartHandler({
-        storefront,
-        customerAccount,
-        getCartId: cartGetIdDefault(request.headers),
-        setCartId: cartSetIdDefault(),
-      });
+        env,
+        executionContext,
+      );
 
       /**
        * Create a Remix request handler and pass
@@ -81,20 +32,16 @@ export default {
       const handleRequest = createRequestHandler({
         build: remixBuild,
         mode: process.env.NODE_ENV,
-        getLoadContext: () => ({
-          session,
-          waitUntil,
-          storefront,
-          customerAccount,
-          cart,
-          env,
-        }),
+        getLoadContext: () => appLoadContext,
       });
 
       const response = await handleRequest(request);
 
-      if (session.isPending) {
-        response.headers.set('Set-Cookie', await session.commit());
+      if (appLoadContext.session.isPending) {
+        response.headers.set(
+          'Set-Cookie',
+          await appLoadContext.session.commit(),
+        );
       }
 
       if (response.status === 404) {
@@ -103,7 +50,7 @@ export default {
          * If the redirect doesn't exist, then `storefrontRedirect`
          * will pass through the 404 response.
          */
-        return storefrontRedirect({request, response, storefront});
+        return storefrontRedirect({request, response, storefront:appLoadContext.storefront});
       }
 
       return response;

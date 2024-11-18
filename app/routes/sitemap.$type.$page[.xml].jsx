@@ -1,4 +1,4 @@
-import {getSitemap} from 'app/lib/sitemap';
+import { getSitemap } from '@shopify/hydrogen';
 import {countries} from '~/data/countries';
 
 const locales = Object.keys(countries).filter((k) => k !== 'default');
