@@ -1,14 +1,14 @@
 #swym-hl-add-to-list-popup{
-    position: fixed; 
+    position: fixed;
     top: 0;
     right: 0;
     bottom: 0;
-    left: 0; 
-    z-index: 10000; 
+    left: 0;
+    z-index: 10000;
     display: flex;
-    justify-content: center; 
-    align-items: center; 
-    width: 100vw; 
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
     height: 100vh;
     background-color: #00000061;
 }
@@ -17,15 +17,15 @@
     margin: auto;
     padding: 25px;
     border: 1px solid #888;
-    display: flex; 
-    flex-direction: column; 
-    color: #000000; 
-    background-color: #ffffff; 
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); 
+    display: flex;
+    flex-direction: column;
+    color: #000000;
+    background-color: #ffffff;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     width: 500px;
     position: relative;
 }
-  
+
 .swym-hl-modal-close-btn{
     padding: 4px;
     position: absolute;
@@ -256,7 +256,7 @@
     line-height: 16px;
     color: #434655;
   }
-  
+
   .swym-wishlist-name {
     font-size: 14px;
     line-height: 16px;
@@ -273,13 +273,13 @@
     text-overflow: ellipsis;
     text-decoration: underline;
   }
-  
+
   .swym-wishlist-text {
     display: flex;
     flex-direction: column;
     min-width: 0;
   }
-  
+
   .swym-wishlist-items {
     overflow: auto;
     height: auto;
@@ -288,7 +288,7 @@
     padding-right: 5px;
     width: calc(8px + 100%);
   }
-  
+
   .swym-hl-product-title {
     font-weight: 500;
     font-size: 12px;
@@ -305,10 +305,47 @@
       right: 5px;
   }
 
+  .swym-wishlist-radio input[type="radio"] {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    background-color: white;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .swym-wishlist-radio input[type="radio"]:not(:checked) {
+    background-color: white;
+    border-color: #ccc;
+  }
+
+  .swym-wishlist-radio input[type="radio"]:checked {
+    background-color: var(--swym-primary-color);
+    border-color: var(--swym-primary-color);
+    position: relative;
+  }
+
+  .swym-wishlist-radio input[type="radio"]:checked::after {
+    content: "";
+    display: block;
+    width: 10px;
+    height: 10px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+
   #swym-hl-add-to-list-popup ::-webkit-scrollbar {
     width: 8px; /* Width of the vertical scrollbar */
     height: 8px; /* Height of the horizontal scrollbar */
-}
+  }
 
 #swym-hl-add-to-list-popup ::-webkit-scrollbar-thumb {
     background-color: darkgrey; /* Color of the scrollbar thumb */

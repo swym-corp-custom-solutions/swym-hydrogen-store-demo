@@ -111,6 +111,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--swym-primary-color);
 }
 
 .swym-hl-wishlist-page-list-container {
@@ -196,7 +197,7 @@
 }
 
 .selected {
-  background-color:#035587;
+  background-color:var(--swym-primary-color);
   font-weight: bold;
   font-size: 16px;
 

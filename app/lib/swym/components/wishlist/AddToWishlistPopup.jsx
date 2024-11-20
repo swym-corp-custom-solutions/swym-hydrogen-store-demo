@@ -75,7 +75,6 @@ function WishlistNameItem({ name, index, id, selectedListId, onSetSelectedListId
                         checked={id === selectedListId}
                         id={id}
                         className={`${id === selectedListId ? 'selected-list-id' : ''}`}
-                        style={{ accentColor: '#035587', color: '#035587' }}
                         onChange={() => onSetSelectedListId(id)}
                     />{' '}
                 </span>
@@ -114,7 +113,8 @@ export default function AddToWishlistPopup({ title, productId, variantId, produc
     }, [createWishlistFetcher.data]);
 
     useEffect(() => {
-        if(createWishlistFetcher.data && wishlist && wishlist.length==1 && createWishlistFetcher.data.lid == wishlist[0].lid){
+      let createdListData = createWishlistFetcher.data;
+        if(createdListData && createdListData.data && wishlist && wishlist.length==1 && createdListData.data.lid == wishlist[0].lid){
             handleAddToWishlist();
         }
     }, [createWishlistFetcher.data, wishlist, selectedListId]);

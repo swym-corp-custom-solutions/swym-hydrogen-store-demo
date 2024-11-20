@@ -1,11 +1,18 @@
+
+:root {
+  --swym-btn-bg-primary-color: #035587;
+  --swym-btn-text-primary-color: #fff;
+  --swym-primary-color: #035587;
+}
+
 .swym-hl-bg-color{
-    background-color:#035587;
+    background-color:var(--swym-primary-color);
  }
- 
+
  .swym-hl-bg-outline{
     border: 1px solid gray;
  }
- 
+
  .swym-hl-text-color{
-    color: #ffffff;  
+    color: var(--swym-btn-text-primary-color);
  }

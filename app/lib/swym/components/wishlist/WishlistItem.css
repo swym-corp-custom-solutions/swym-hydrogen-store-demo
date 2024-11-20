@@ -83,7 +83,7 @@
 .swym-hl-wishlist-item-content button {
     width: 100%;
     padding: 10px;
-    background: #035587;
+    background: var(--swym-primary-color);
     color: white;
     text-align: center;
     cursor: pointer;

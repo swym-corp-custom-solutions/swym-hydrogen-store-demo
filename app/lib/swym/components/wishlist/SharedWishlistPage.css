@@ -114,10 +114,9 @@
 }
 
 .selected {
-  background-color:#035587;
+  background-color:var(--swym-primary-color);
   font-weight: bold;
   font-size: 16px;
-
 }
 
 .add-button{
