@@ -25,7 +25,7 @@ import {getInputStyleClasses} from '~/lib/utils';
  * }}
  */
 export function Cart({layout, onClose, cart}) {
-  const linesCount = Boolean(cart?.lines?.edges?.length || 0);
+  const linesCount = Boolean(cart?.lines?.nodes?.length || 0);
 
   return (
     <>
