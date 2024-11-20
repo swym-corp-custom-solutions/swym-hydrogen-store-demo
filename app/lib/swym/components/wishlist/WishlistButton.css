@@ -9,23 +9,23 @@
      background: transparent;
      color: white;
  }
- 
+
  .swym-hl-wl-btn{
-     cursor: pointer; 
+     cursor: pointer;
      padding: 0.75rem;
-     border-radius: 0.25rem; 
+     border-radius: 0.25rem;
      font-weight: 500;
  }
- 
+
  .swym-hl-wl-btn svg{
     stroke: black;
  }
 
- .swym-hl-wl-btn svg:hover{
+ .swym-hl-wl-btn:hover svg{
     stroke: black;
     color: red;
  }
- 
+
  .swym-hl-product-wishlisted svg{
     stroke: black;
     color: red;

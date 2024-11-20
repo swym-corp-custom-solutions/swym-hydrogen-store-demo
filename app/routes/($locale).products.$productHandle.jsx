@@ -177,7 +177,7 @@ export default function Product() {
                   <Text className={'opacity-50 font-medium'}>{vendor}</Text>
                 )}
               </div>
-              <WishlistButton product={product} buttonType={'icon'} addToMultiList={true}></WishlistButton>
+              <WishlistButton product={product} buttonType={'icontext'} addToMultiList={true}></WishlistButton>
               <Suspense fallback={<ProductForm variants={[]} />}>
                 <Await
                   errorElement="There was a problem loading related products"
