@@ -103,7 +103,7 @@ function Account({customer, heading, featuredDataPromise}) {
   return (
     <>
       <PageHeader heading={heading}>
-        <Form method="post" action={usePrefixPathWithLocale('/account/logout')}>
+        <Form method="post" action={'/account/logout'}>
           <button type="submit" className="text-primary/50">
             Sign out
           </button>
