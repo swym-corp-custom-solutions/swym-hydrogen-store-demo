@@ -44,7 +44,7 @@ export const loader = async ({ params, context }) => {
     return json({ listContents });
   } catch (error) {
     console.error("Error fetching list contents:", error);
-    throw new Response(`Failed to fetch list contents ${error.toString()}`, { status: 500, error });
+    throw new Response(`Failed to fetch list contents ${error.message}`, { status: 500, error });
   }
 };
 
