@@ -1,3 +1,9 @@
+.swym-hl-wl-container{
+  padding-left: 1rem;
+  padding-right: 1rem;
+ }
+
+
 .swym-hl-wishlist-page{
 
 }
@@ -12,17 +18,17 @@
 }
 
 .swym-hl-wl-selected-lname{
-  flex: 1 1 0%; 
+  flex: 1 1 0%;
   font-size: 1.25rem;
-  line-height: 1.75rem; 
-  font-weight: 700; 
+  line-height: 1.75rem;
+  font-weight: 700;
 }
 
 .swym-hl-wishlist-page-share-btn{
-  padding: 10px; 
-  border-radius: 9999px; 
-  border-width: 1px; 
-  cursor: pointer; 
+  padding: 10px;
+  border-radius: 9999px;
+  border-width: 1px;
+  cursor: pointer;
 }
 
 .swym-hl-wishlist-page-list-container {
@@ -111,7 +117,7 @@
   background-color:#035587;
   font-weight: bold;
   font-size: 16px;
-  
+
 }
 
 .add-button{
@@ -125,7 +131,7 @@
   border-radius: 25%;
   animation: rotator 1.4s linear infinite;
 }
-  
+
 @keyframes rotator {
   0% {
     transform: rotate(0deg);
@@ -158,10 +164,17 @@
 
 .swym-hl-empty-wl-title{
   font-size: 1.25rem;
-  line-height: 1.75rem; 
-  font-weight: 700; 
+  line-height: 1.75rem;
+  font-weight: 700;
 }
 
 .swym-hl-wishlist-shared-info{
   margin-bottom: 10px;
+}
+
+@media (min-width: 48em) {
+  .swym-hl-wl-container{
+      padding-left: 2rem;
+      padding-right: 2rem;
+  }
 }

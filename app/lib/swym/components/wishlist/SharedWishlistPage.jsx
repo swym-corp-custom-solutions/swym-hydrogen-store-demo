@@ -58,7 +58,7 @@ export default function WishlistPage() {
 
 
   return (
-    <div>
+    <div className='swym-hl-wl-container'>
       { selectedList && <div>
         <div className="swym-hl-wl-content-header">
           <h3 className="swym-hl-wl-selected-lname">
@@ -70,7 +70,7 @@ export default function WishlistPage() {
           <p className='swym-hl-wishlist-shared-info'> {senderEmail} wanted you to take a look at his collection  { selectedList.lname}</p>
         )}
         <div className='swym-hl-wishlist-page-list-container'>
-          {selectedListData && selectedListData.length > 0 && 
+          {selectedListData && selectedListData.length > 0 &&
             selectedListData.map((item) => (
               <WishlistItem key={item.epi} productId={item.empi} variantId={item.epi} title={item.dt} product={item} readOnly={true} />
             ))
