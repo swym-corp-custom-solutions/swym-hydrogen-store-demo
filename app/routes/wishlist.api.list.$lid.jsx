@@ -8,19 +8,19 @@ export const loader = async ({ params, context }) => {
   }
 
   try {
-    
+
     const listContents = [];
 
     const listData = await context.swym.fetchListWithContents(lid, { cache: CacheNone() });
 
-    
+
     for (const item of listData.items) {
       let { empi, epi } = item;
       const response = await context.storefront.query(PRODUCT_QUERY, {
         variables: {productId: `gid://shopify/Product/${empi}`, variantId: `gid://shopify/ProductVariant/${epi}`},
       });
-  
-      
+
+
       const productData = response.product;
       if (productData) {
         const selectedVariant = productData.variants.edges.find(variant => variant.node.id === `gid://shopify/ProductVariant/${epi}`);
@@ -44,7 +44,7 @@ export const loader = async ({ params, context }) => {
     return json({ listContents });
   } catch (error) {
     console.error("Error fetching list contents:", error);
-    throw new Response("Failed to fetch list contents", { status: 500 });
+    throw new Response(`Failed to fetch list contents ${error.toString()}`, { status: 500, error });
   }
 };
 

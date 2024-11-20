@@ -5,7 +5,6 @@ import { REG_ID } from '~/lib/swym/swymConstants';
  * @param {AppLoadContext} context
  */
 export async function doLogout(context) {
-  context.session.unset(REG_ID);
   return context.customerAccount.logout();
 }
 

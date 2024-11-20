@@ -250,7 +250,7 @@ export function createSwymApiClient({
     );
 
     if (!chacheResponse.response.ok) {
-      throw new Error('Failed to fetch list contents');
+      throw new Error('Failed to fetch list contents from server');
     }
 
     return chacheResponse.data;
