@@ -105,7 +105,7 @@ const WishlistButton = ({ product, buttonType, addToMultiList }) => {
 
   return (
     <>
-       <div onClick={openModal} className={ ` ${buttonType == 'icon'?'swym-hl-wl-icon':'swym-hl-bg-color'}  swym-hl-wl-btn  ${wishlisted?'swym-hl-product-wishlisted':'swym-hl-text-color'} swym-hl-btn-center-align`}>
+       <div onClick={openModal} className={ ` ${buttonType != 'icon'?'swym-hl-bg-color':'swym-hl-wl-icon'}  swym-hl-wl-btn  ${wishlisted?'swym-hl-product-wishlisted':'swym-hl-text-color'} swym-hl-btn-center-align`}>
         { ( buttonType == 'icon' || buttonType == 'icontext' ) && <WishlistIcon style={{ marginRight: '5px'}} /> }
         { ( buttonType != 'icon' ) && <span className='swym-hl-text-color'>{wishlisted?'Added':'Add'} to Wishlist</span> }
       </div>

@@ -7,7 +7,6 @@ const SwymContext = createContext();
 
 // Provide context
 export function SwymProvider({ children, wishlist }) {
-  console.log('data inside provider ', wishlist);
   const [addToWishlistPopupOpen, setAddToWishlistPopupOpen] = useState(false);
   const [product, setProduct] = useState(null);
 
