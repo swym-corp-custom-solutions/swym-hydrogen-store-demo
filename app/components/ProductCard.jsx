@@ -6,6 +6,7 @@ import {Button} from '~/components/Button';
 import {AddToCartButton} from '~/components/AddToCartButton';
 import {isDiscounted, isNewArrival} from '~/lib/utils';
 import {getProductPlaceholder} from '~/lib/placeholders';
+import WishlistButton from '~/lib/swym/components/wishlist/WishlistButton';
 
 /**
  * @param {{
@@ -91,6 +92,7 @@ export function ProductCard({
           </div>
         </div>
       </Link>
+      <WishlistButton product={product} buttonType={'icon'} addToMultiList={true}></WishlistButton>
       {quickAdd && firstVariant.availableForSale && (
         <AddToCartButton
           lines={[

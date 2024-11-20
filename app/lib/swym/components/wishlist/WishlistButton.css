@@ -1,0 +1,32 @@
+.swym-hl-btn-center-align{
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
+
+ .swym-hl-wl-icon{
+     width: fit-content;
+     background: transparent;
+     color: white;
+ }
+ 
+ .swym-hl-wl-btn{
+     cursor: pointer; 
+     padding: 0.75rem;
+     border-radius: 0.25rem; 
+     font-weight: 500;
+ }
+ 
+ .swym-hl-wl-btn svg{
+    stroke: black;
+ }
+
+ .swym-hl-wl-btn svg:hover{
+    stroke: black;
+    color: red;
+ }
+ 
+ .swym-hl-product-wishlisted svg{
+    stroke: black;
+    color: red;
+ }

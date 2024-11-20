@@ -37,7 +37,8 @@
     "react-use": "^17.4.0",
     "schema-dts": "^1.1.0",
     "tiny-invariant": "^1.2.0",
-    "typographic-base": "^1.0.4"
+    "typographic-base": "^1.0.4",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",

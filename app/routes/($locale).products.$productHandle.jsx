@@ -24,6 +24,8 @@ import {getExcerpt} from '~/lib/utils';
 import {seoPayload} from '~/lib/seo.server';
 import {routeHeaders} from '~/data/cache';
 import {MEDIA_FRAGMENT, PRODUCT_CARD_FRAGMENT} from '~/data/fragments';
+import WishlistButton from '~/lib/swym/components/wishlist/WishlistButton';
+import { loadwishlistData } from '~/lib/swym/loaders/swymloaders';
 
 export const headers = routeHeaders;
 
@@ -40,7 +42,9 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
-  return defer({...deferredData, ...criticalData});
+  const swymLoaderData = await loadwishlistData(args);
+
+  return defer({...deferredData, ...criticalData, ...swymLoaderData});
 }
 
 /**
@@ -173,6 +177,7 @@ export default function Product() {
                   <Text className={'opacity-50 font-medium'}>{vendor}</Text>
                 )}
               </div>
+              <WishlistButton product={product} buttonType={'icon'} addToMultiList={true}></WishlistButton>
               <Suspense fallback={<ProductForm variants={[]} />}>
                 <Await
                   errorElement="There was a problem loading related products"

@@ -23,7 +23,9 @@ import {NotFound} from '~/components/NotFound';
 import favicon from '~/assets/favicon.svg';
 import {seoPayload} from '~/lib/seo.server';
 import styles from '~/styles/app.css?url';
-
+import swymStyles from '~/lib/swym/styles.css?url';
+import { loadwishlistData } from './lib/swym/loaders/swymloaders';
+import { SwymProvider } from './lib/swym/context/SwymContext';
 import {DEFAULT_LOCALE, parseMenu} from './lib/utils';
 
 // This is important to avoid re-fetching root queries on sub-navigations
@@ -50,6 +52,7 @@ export const shouldRevalidate = ({formMethod, currentUrl, nextUrl}) => {
 export const links = () => {
   return [
     {rel: 'stylesheet', href: styles},
+    { rel: 'stylesheet', href: swymStyles },
     {
       rel: 'preconnect',
       href: 'https://cdn.shopify.com',
@@ -72,9 +75,12 @@ export async function loader(args) {
   // Await the critical data required to render initial state of the page
   const criticalData = await loadCriticalData(args);
 
+  const swymLoaderData = await loadwishlistData(args);
+
   return defer({
     ...deferredData,
     ...criticalData,
+    ...swymLoaderData
   });
 }
 
@@ -156,12 +162,14 @@ function Layout({children}) {
             shop={data.shop}
             consent={data.consent}
           >
-            <PageLayout
-              key={`${locale.language}-${locale.country}`}
-              layout={data.layout}
-            >
-              {children}
-            </PageLayout>
+            <SwymProvider {...data}>
+              <PageLayout
+                key={`${locale.language}-${locale.country}`}
+                layout={data.layout}
+              >
+                {children}
+              </PageLayout>
+            </SwymProvider>
           </Analytics.Provider>
         ) : (
           children
