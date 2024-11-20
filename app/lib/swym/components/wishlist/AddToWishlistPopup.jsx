@@ -114,7 +114,7 @@ export default function AddToWishlistPopup({ title, productId, variantId, produc
     }, [createWishlistFetcher.data]);
 
     useEffect(() => {
-        if(createWishlistFetcher.data && wishlist && wishlist.length==1){
+        if(createWishlistFetcher.data && wishlist && wishlist.length==1 && createWishlistFetcher.data.lid == wishlist[0].lid){
             handleAddToWishlist();
         }
     }, [createWishlistFetcher.data, wishlist, selectedListId]);
@@ -248,9 +248,9 @@ export default function AddToWishlistPopup({ title, productId, variantId, produc
                     {!showCreateNewList && (
                         <div>
                             <div className='product-details'>
-                                <div className="swym-hl-product-image">
+                                {image && <div className="swym-hl-product-image">
                                     <img src={image} alt="" />
-                                </div>
+                                </div>}
                                 <span className='swym-hl-product-title'>{title}</span>
                             </div>
                             <div className="swym-wishlist-items">

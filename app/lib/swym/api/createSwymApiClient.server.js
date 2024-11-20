@@ -1,4 +1,4 @@
-import {createWithCache, CacheNone} from '@shopify/hydrogen';
+import { createWithCache, CacheNone } from '@shopify/hydrogen';
 import { json } from "@remix-run/server-runtime";
 import { v4 as uuidv4 } from "uuid";
 import SWYM_CONFIG from '~/lib/swym/swymconfig';
@@ -27,207 +27,196 @@ export function createSwymApiClient({
   }
 
   async function generateRegId(options = { cache: CacheNone() }) {
-    // call to the API
     const url = new URL(request.url);
     const useremail = url.searchParams.get("useremail");
 
     const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/storeadmin/v3/user/generate-regid`;
-    const apiKey = SWYM_CONFIG.REST_API_KEY;
-    const pid = SWYM_CONFIG.PID;
-
-    // Base64 encoding of pid:apiKey
-    const encodedCredentials = btoa(`${pid}:${apiKey}`);
+    const encodedCredentials = btoa(`${SWYM_CONFIG.PID}:${SWYM_CONFIG.REST_API_KEY}`);
 
     const searchParams = {
-        useragenttype: "mobileApp",
+      useragenttype: "swymHeadlessApp",
+      ...(useremail ? { useremail } : { uuid: uuidv4() }),
     };
 
-    if (useremail) {
-        searchParams.useremail = useremail;
-    } else {
-        searchParams.uuid = uuidv4();
-    }
+    try {
+      const chacheResponse = await withCache.fetch(
+        swymApiEndpoint,
+        {
+          method: "POST",
+          headers: { "Authorization": `Basic ${encodedCredentials}`, "Content-Type": "application/x-www-form-urlencoded", },
+          body: new URLSearchParams(searchParams),
+        }, {
+        cacheKey: "swym-generate-regid",
+        cacheStrategy: options.cache,
+        displayName: "generateRegId"
+      }
+      );
 
-    try{
-        // Make the API request to generate regid
-        const response = await fetch(swymApiEndpoint, {
-        method: "POST",
-        headers: {
-            "Authorization": `Basic ${encodedCredentials}`,
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: new URLSearchParams(searchParams),
-        });
-
-        // Check if the request was successful
-        if (!response.ok) {
+      if (!chacheResponse.response.ok) {
         throw new Error("Failed to generate regid");
-        }
+      }
 
-        // Parse the response
-        const data = await response.json();
+      const data = chacheResponse.data;
+      session.set(SESSION_ID, data.sessionid);
+      session.set(REG_ID, data.regid);
 
-        session.set(SESSION_ID, data.sessionid);
-        session.set(REG_ID, data.regid);
-        return data;
-    }catch (error) {
-        return json({ error: error.message }, { status: 500 });
+      return data;
+    } catch (error) {
+      console.error("Error generating regid:", error.message);
+      throw new Error("Server error while generating regid", error);
     }
   }
 
   async function createList(lname = SWYM_CONFIG.defaultWishlistName, options = { cache: CacheNone() }) {
     await ensureRegId();
+
     let sessionid = session.get(SESSION_ID);
     let regid = session.get(REG_ID);
 
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('lname', lname);
-    urlencoded.append('regid', regid);
-    urlencoded.append('sessionid', sessionid);
     const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/create?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
-    const response = await withCache.fetch(
+    const body = new URLSearchParams({
+      lname, regid, sessionid
+    });
+
+    const chacheResponse = await withCache.fetch(
       swymApiEndpoint,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'user-agent': 'headlesswebApp',
-        },
-        body: new URLSearchParams({
-          lname: lname.toString(),
-          regid: regid.toString(),
-          sessionid: sessionid.toString(),
-        }),
-      },{
-        cacheKey:"swym-createList",
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'user-agent': 'headlesswebApp', },
+        body,
+      },
+      {
+        cacheKey: "swym-createList",
         cacheStrategy: options.cache,
         displayName: "createList"
       }
-    ).catch((error)=>{
-      console.log('error ', error);
-    });
+    );
 
-    console.log(response);
+    if (!chacheResponse.response.ok) {
+      throw new Error('Failed to create wishlist');
+    }
 
-    // if (!response.ok) {
-    //   throw new Error('Failed to create wishlist');
-    // }
-
-    return await response.json();
+    return chacheResponse.data;
   }
 
 
   async function updateList(productId, variantId, productUrl, lid, options = { cache: CacheNone() }) {
     await ensureRegId();
 
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('regid', session.get(REG_ID));
-    urlencoded.append('sessionid', session.get(SESSION_ID));
-    urlencoded.append('lid', lid);
-    urlencoded.append('a', `[{ "epi":${variantId}, "empi": ${productId}, "du":"${productUrl}" , "cprops": {"ou":"${productUrl}"}, "note": null, "qty": 1 }]`);
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
 
     const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/update-ctx?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+      lid,
+      a: `[{ "epi":${variantId}, "empi": ${productId}, "du":"${productUrl}" , "cprops": {"ou":"${productUrl}"}, "note": null, "qty": 1 }]`,
+    });
 
-    const response = await fetch(
+    const chacheResponse = await withCache.fetch(
       swymApiEndpoint,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'user-agent': 'headlesswebApp'
-        },
-        body: urlencoded,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'user-agent': 'headlesswebApp', },
+        body,
+      },
+      {
+        cacheKey: "swym-update-list",
+        cacheStrategy: options.cache,
+        displayName: "updateList"
       }
     );
 
-    if (!response.ok) {
+    if (!chacheResponse.response.ok) {
       throw new Error('Failed to update wishlist');
     }
 
-    return await response.json();
+    return chacheResponse.data;
   }
 
 
   async function addToWishlist(productId, variantId, productUrl, customLid, options = { cache: CacheNone() }) {
     await ensureRegId();
-    let lid = '';
+
     if (customLid) {
       return updateList(productId, variantId, productUrl, customLid);
-    } else {
-      const response = await fetchWishlist();
-      if (response.length === 0) {
-        const newList = await createList();
-        lid = newList.lid;
-        return updateList(productId, variantId, productUrl, lid);
-      } else {
-        lid = response[0].lid || lid;
-        return updateList(productId, variantId, productUrl, lid);
-      }
     }
+
+    const wishlist = await fetchWishlist();
+    let lid = (wishlist && wishlist.length) ? wishlist[0].lid : null;
+
+    if (!lid) {
+      const newList = await createList();
+      lid = newList.lid;
+    }
+
+    return updateList(productId, variantId, productUrl, lid, options);
   }
 
-  async function removeFromWishlist(productId, variantId, productUrl, listId, options = { cache: CacheNone() }) {
+  async function removeFromWishlist(productId, variantId, productUrl, lid, options = { cache: CacheNone() }) {
     await ensureRegId();
 
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('regid', session.get(REG_ID));
-    urlencoded.append('sessionid', session.get(SESSION_ID));
-    urlencoded.append('lid', listId);
-    urlencoded.append(
-      'd',
-      `[{ "epi":${variantId}, "empi": ${productId}, "du":"${productUrl}"}]`,
-    );
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
 
-    const response = await fetch(
-      `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/update-ctx?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`,
+    const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/update-ctx?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+      lid,
+      d: `[{ "epi":${variantId}, "empi": ${productId}, "du":"${productUrl}"}]`,
+    });
+
+    const chacheResponse = await withCache.fetch(
+      swymApiEndpoint,
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-          'user-agent': 'headlesswebApp'
-        },
-        body: urlencoded,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', 'user-agent': 'headlesswebApp', },
+        body,
+      },
+      {
+        cacheKey: "swym-remove-wishlist",
+        cacheStrategy: options.cache,
+        displayName: "removeFromWishlist"
       }
     );
 
-    if (!response.ok) {
+    if (!chacheResponse.response.ok) {
       throw new Error('Failed to remove item from wishlist');
     }
 
-    return await response.json();
+    return chacheResponse.data;
   }
 
   async function fetchWishlist(options = { cache: CacheNone() }) {
     await ensureRegId();
-    var urlencoded = new URLSearchParams();
-    urlencoded.append('regid', session.get(REG_ID));
-    urlencoded.append('sessionid', session.get(SESSION_ID));
+
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
 
     const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/fetch-lists?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+    });
 
     try {
-      // Make a POST request to the Swym API
-      const response = await fetch(swymApiEndpoint, {
+      const chacheResponse = await withCache.fetch(swymApiEndpoint, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-          'Accept': 'application/json',
-        },
-        body: urlencoded,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json', },
+        body,
+      }, {
+        cacheKey: "swym-fetch-list",
+        cacheStrategy: options.cache,
+        displayName: "fetchWishList"
       });
 
-      // Error handling for the API request
-      if (!response.ok) {
-        console.log(response.statusText);
+      if (!chacheResponse.response.ok) {
         throw new Error("Failed to load wishlist");
       }
 
-      // Parse the API response as JSON
-      const data = await response.json();
-      return data;
+      return chacheResponse.data;
     } catch (error) {
       return json({ error: error.message }, { status: 500 });
     }
@@ -236,134 +225,187 @@ export function createSwymApiClient({
   async function fetchListWithContents(lid, options = { cache: CacheNone() }) {
     await ensureRegId();
 
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('regid', session.get(REG_ID));
-    urlencoded.append('sessionid', session.get(SESSION_ID));
-    urlencoded.append('lid', lid);
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
 
-    const response = await fetch(
-      `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/fetch-list-with-contents?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`,
+    const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/fetch-list-with-contents?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+      lid
+    });
+
+    const chacheResponse = await withCache.fetch(
+      swymApiEndpoint,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: urlencoded,
+        body,
+      },
+      {
+        cacheKey: "swym-fetch-listwith-contents",
+        cacheStrategy: options.cache,
+        displayName: "fetchListWithContents"
       }
     );
 
-    if (!response.ok) {
+    if (!chacheResponse.response.ok) {
       throw new Error('Failed to fetch list contents');
     }
 
-    return await response.json();
+    return chacheResponse.data;
   }
 
 
   async function guestValidateSync(useremail, options = { cache: CacheNone() }) {
     await ensureRegId();
 
-    const urlencoded = new URLSearchParams();
-    urlencoded.append('regid', session.get(REG_ID));
-    urlencoded.append('useremail', useremail);
-    urlencoded.append('useragenttype',  "mobileApp");
-
+    let regid = session.get(REG_ID);
+    let useragenttype = 'swymHeadlessApp';
 
     const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/storeadmin/v3/user/guest-validate-sync`;
+    const body = new URLSearchParams({
+      regid,
+      useremail,
+      useragenttype
+    });
+
+
     const apiKey = SWYM_CONFIG.REST_API_KEY;
     const pid = SWYM_CONFIG.PID;
-
-    // Base64 encoding of pid:apiKey
     const encodedCredentials = btoa(`${pid}:${apiKey}`);
 
-    try{
-        // Make the API request to generate regid
-        const response = await fetch(swymApiEndpoint, {
+    try {
+      const chacheResponse = await withCache.fetch(
+        swymApiEndpoint,
+        {
           method: "POST",
-          headers: {
-              "Authorization": `Basic ${encodedCredentials}`,
-              "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: urlencoded,
-        });
-
-        // Check if the request was successful
-        if (!response.ok) {
-        throw new Error("Failed to sync");
+          headers: { "Authorization": `Basic ${encodedCredentials}`, "Content-Type": "application/x-www-form-urlencoded", },
+          body,
+        },
+        {
+          cacheKey: "swym-guest-validate-sync",
+          cacheStrategy: options.cache,
+          displayName: "guestValidateSync"
         }
+      );
 
-        // Parse the response
-        const data = await response.json();
-        session.set(REG_ID, data.regid);
-        return data;
-    }catch (error) {
-        return json({ error: error.message }, { status: 500 });
+      if (!chacheResponse.response.ok) {
+        throw new Error("Failed to sync");
+      }
+
+      const data = chacheResponse.data;
+      session.set(REG_ID, data.regid);
+
+      return data;
+    } catch (error) {
+      return json({ error: error.message }, { status: 500 });
     }
   }
 
   async function fetchPublicList(lid, options = { cache: CacheNone() }) {
     await ensureRegId();
-    const urlencoded = new URLSearchParams({
-      regid: session.get(REG_ID),
-      sessionid: session.get(SESSION_ID),
-      lid,
+
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
+
+    const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/markPublic?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      lid, regid, sessionid
     });
-    const response = await fetch(
-      `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/markPublic?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`,
+
+
+    const chacheResponse = await withCache.fetch(
+      swymApiEndpoint,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: urlencoded,
+        body,
+      },
+      {
+        cacheKey: "swym-fetch-public-list",
+        cacheStrategy: options.cache,
+        displayName: "fetchPublicList"
       }
     );
-    if (!response.ok) {
+
+    if (!chacheResponse.response.ok) {
       throw new Error("Failed to mark list as public");
     }
-    return await response.json();
+
+    return chacheResponse.data;
   }
 
-  async function shareWishlistViaEmail(publicLid, senderName, emailValue, options = { cache: CacheNone() }) {
+  async function shareWishlistViaEmail(lid, senderName, emailValue, options = { cache: CacheNone() }) {
     await ensureRegId();
-    const urlencoded = new URLSearchParams({
-      regid: session.get(REG_ID),
-      sessionid: session.get(SESSION_ID),
-      lid: publicLid,
+
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
+
+    const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/emailList?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+      lid,
       fromname: senderName,
       toemail: emailValue,
     });
-    const response = await fetch(
-      `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/emailList?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`,
+
+    const chacheResponse = await withCache.fetch(
+      swymApiEndpoint,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: urlencoded,
+        body,
+      },
+      {
+        cacheKey: "swym-share-wishlist-via-email",
+        cacheStrategy: options.cache,
+        displayName: "shareWishlistViaEmail"
       }
     );
-    if (!response.ok) {
+
+    if (!chacheResponse.response.ok) {
       throw new Error("Failed to share wishlist via email");
     }
-    return await response.json();
+
+    return chacheResponse.data;
   }
 
-  async function copyWishlistLink(publicLid, medium, shareListSenderName, options = { cache: CacheNone() }) {
+  async function copyWishlistLink(lid, medium, shareListSenderName, options = { cache: CacheNone() }) {
     await ensureRegId();
-    const urlencoded = new URLSearchParams({
-      regid: session.get(REG_ID),
-      sessionid: session.get(SESSION_ID),
-      lid: publicLid,
+
+    let sessionid = session.get(SESSION_ID);
+    let regid = session.get(REG_ID);
+
+    const swymApiEndpoint = `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/reportShare?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`;
+    const body = new URLSearchParams({
+      regid,
+      sessionid,
+      lid,
       fromname: shareListSenderName,
       medium,
     });
-    const response = await fetch(
-      `${SWYM_CONFIG.SWYM_ENDPOINT}/api/v3/lists/reportShare?pid=${encodeURIComponent(SWYM_CONFIG.PID)}`,
+
+    const chacheResponse = await withCache.fetch(
+      swymApiEndpoint,
       {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: urlencoded,
+        body,
+      },
+      {
+        cacheKey: "swym-copy-wishlist-link",
+        cacheStrategy: options.cache,
+        displayName: "copyWishlistLink"
       }
     );
-    if (!response.ok) {
+
+    if (!chacheResponse.response.ok) {
       throw new Error("Failed to copy wishlist link");
     }
-    return await response.json();
+
+    return chacheResponse.data;
   }
 
   return { generateRegId, createList, updateList, addToWishlist, removeFromWishlist, fetchWishlist, fetchListWithContents, guestValidateSync, fetchPublicList, shareWishlistViaEmail, copyWishlistLink };

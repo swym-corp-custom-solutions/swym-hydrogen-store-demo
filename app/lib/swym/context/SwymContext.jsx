@@ -47,7 +47,7 @@ export function SwymProvider({ children, wishlist }) {
       return origin + '/products/'+ product.handle;
     }
   }
-  
+
   const getProductImage = () => {
     if(product && product.featuredImage){
       return product.featuredImage?.url;
@@ -55,18 +55,20 @@ export function SwymProvider({ children, wishlist }) {
       return product.selectedVariant.image.url;
     }else if(product && product.images && product.images.nodes[0]){
       return product.images.nodes[0].url;
+    }else if(product && product.variants && product.variants.nodes[0]){
+      return product.variants.nodes[0].image?.url;
     }
   }
 
   return (
     <SwymContext.Provider value={{ addToWishlistPopupOpen, product, wishlist, openAddToWishlistPopup, closeAddToWishlistPopup, setWishlistNotification, setShowWishlistNotification }}>
       {children}
-      { addToWishlistPopupOpen && 
-        <AddToWishlistPopup title={product?.title} productId={getProductId()} variantId={getProductVariantId()} productUrl={getProductUrl()} image={getProductImage()} onPopupToggle={setAddToWishlistPopupOpen} 
+      { addToWishlistPopupOpen &&
+        <AddToWishlistPopup title={product?.title} productId={getProductId()} variantId={getProductVariantId()} productUrl={getProductUrl()} image={getProductImage()} onPopupToggle={setAddToWishlistPopupOpen}
           onAddedToWishlist={(data)=>{
               setWishlistNotification({ type: 'success', title:'Success', info: `Item Added to ${data.lname?data.lname:'Wishlist'}`, image: getProductImage() });
               setShowWishlistNotification(true);
-          }}  
+          }}
           onErrorAddingToWishlist={(data, errorMsg)=>{
             setWishlistNotification({ type: 'error', title:'Error', info: `Error Adding Item to ${data.lname?data.lname:'Wishlist'} - ${errorMsg}`, image: getProductImage() });
             setShowWishlistNotification(true);
