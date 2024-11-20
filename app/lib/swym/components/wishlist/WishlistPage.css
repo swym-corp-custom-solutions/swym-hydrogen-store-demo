@@ -108,8 +108,6 @@
   border-radius: 50%;
   cursor: pointer;
   border: 1px solid lightgray;
-  width: 20px;
-  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;

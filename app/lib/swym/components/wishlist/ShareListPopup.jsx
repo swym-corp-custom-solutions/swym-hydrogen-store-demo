@@ -3,6 +3,7 @@ import './ShareListPopup.css';
 import { useFetcher, useLoaderData } from '@remix-run/react';
 import { getSharedURL, getWishlistBadgeLetters, validateEmail } from '~/lib/swym/Utils/utilsFunction';
 import SWYM_CONFIG from '../../swymconfig';
+import { useSwym } from '../../context/SwymContext';
 
 export default function ShareListPopup({ selectedList, onPopupToggle }) {
     const markPublicListFetcher = useFetcher();
@@ -37,7 +38,7 @@ export default function ShareListPopup({ selectedList, onPopupToggle }) {
 
 
     const callCopyLink = (e) => {
-        //do we need to call context.swym.copyWishlistLink to report copy share link, what is the use 
+        //do we need to call context.swym.copyWishlistLink to report copy share link, what is the use
         e.preventDefault();
         let sharedurl = getSharedURL(hostName, selectedList?.lid);
         navigator.clipboard
@@ -84,8 +85,8 @@ export default function ShareListPopup({ selectedList, onPopupToggle }) {
 
         shareViaEmailFetcher.submit(
             {
-                publicLid, 
-                senderName, 
+                publicLid,
+                senderName,
                 emailValue
             },
             { method: 'post', action: '/wishlist/api/share/emaillist' }
